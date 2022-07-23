@@ -78,8 +78,13 @@ def addpayment():
     else:
         counter = counter[0]['c']
     mycursor.execute(f"INSERT INTO pagos (usuario,id,cantidad, fecha) VALUES ({request.json['usuario']},{counter + 1},{request.json['cantidad']},'{request.json['fecha']}')")
-    db.commit()
+    mycursor.execute(f"select meses_pagados from estado_actual where usuario = {request.json['usuario']}")
+    meses_pagados = mycursor.fetchall()
+    meses_pagados = meses_pagados[0]['meses_pagados']
+    pago_nuevo = request.json['cantidad'] / 30
+    mycursor.execute(f"update estado_actual set meses_pagados = {meses_pagados + pago_nuevo} where usuario = {request.json['usuario']}")
     response = mycursor.rowcount
+    db.commit()
     mycursor.close()
     if response > 0:
         return make_response(jsonify({'message': 'pago agreagado correctamente'}), 201)
@@ -139,7 +144,7 @@ def getestado(user_id):
     mycursor.close()
     if len(userfound) > 0:
         return jsonify(userfound)
-    return jsonify({'message': 'no se pudo encontrar los pagos de este usiario'})
+    return jsonify({'message': 'no se pudo encontrar los pagos de este usuario'})
 
 
 if __name__ == '__main__':
