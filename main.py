@@ -82,7 +82,12 @@ def addpayment():
     meses_pagados = mycursor.fetchall()
     meses_pagados = meses_pagados[0]['meses_pagados']
     pago_nuevo = request.json['cantidad'] / 30
-    mycursor.execute(f"update estado_actual set meses_pagados = {meses_pagados + pago_nuevo} where usuario = {request.json['usuario']}")
+    pago_final = meses_pagados + pago_nuevo
+    decimales = str(pago_final).split('.')
+    decimal = int(decimales[1])
+    if decimal >= 98:
+        pago_final = round(pago_final, 1)
+    mycursor.execute(f"update estado_actual set meses_pagados = {pago_final} where usuario = {request.json['usuario']}")
     response = mycursor.rowcount
     db.commit()
     mycursor.close()
